@@ -141,3 +141,17 @@ With more time and budget, we would implement the following features:
 
 3. **SMS & WhatsApp API Integration**:
    * Connect actual [Twilio](https://www.twilio.com/) (SMS) or [Meta WhatsApp Business API](https://developers.facebook.com/docs/whatsapp/) SDKs to `send_payment_link` to send a live, trackable payment URL in real-time.
+
+---
+
+## 7. Checklist Before Final Submission
+
+- [x] **HLD Document:** Complete with architecture diagrams, sequence flows, state machine transition rules, tool schemas, RBI compliance notes, and observability metrics in [`docs/HLD_Document.md`](docs/HLD_Document.md).
+- [x] **Vapi Assistant Setup:** Configured with Deepgram STT (Nova-2), GPT-4o-mini LLM, and Cartesia/ElevenLabs TTS in [`vapi/system_prompt.txt`](vapi/system_prompt.txt) and [`vapi/tool_definitions.json`](vapi/tool_definitions.json).
+- [x] **Mock Server Live:** Webhook server deployed live on Render (`https://kapture-collection-voicebot.onrender.com/webhook`) and automated tests verified (`tests/run_tests.js`).
+- [ ] **Recorded Demo:** 2–4 minute video showing:
+  1. *Successful PTP Flow:* Greeting $\rightarrow$ Auth $\rightarrow$ Debt Disclosure $\rightarrow$ PTP Commitment $\rightarrow$ SMS Link Sent.
+  2. *Edge Case Flow:* Already Paid / Dispute / Do Not Call / Auth Failure.
+- [x] **GitHub / Zip Repo:** Contains `README.md`, system prompt text, tool schemas, server code, and test matrix at `https://github.com/fathimasalha/kapture-collection-voicebot.git`.
+- [ ] **Email / Drive Link:** Submitted to the recruiter/hiring team within the given deadline window.
+
