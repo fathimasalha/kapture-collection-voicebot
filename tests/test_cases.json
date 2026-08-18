@@ -1,0 +1,377 @@
+[
+  {
+    "test_id": "TC-001",
+    "scenario_name": "Happy Path - Promise to Pay (PTP)",
+    "category": "Core Workflow",
+    "conversation_steps": [
+      {
+        "speaker": "Maya",
+        "expected_response": "Hello, this is Maya calling from Kapture Finance. Am I speaking with Mr. Rahul Sharma?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Yes, I am Rahul."
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "For security and privacy, could you please confirm the last 4 digits of your PAN card or your year of birth?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "My PAN last digits are 1234."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "verify_customer",
+        "args": {
+          "account_id": "ACC-88392",
+          "verification_code": "1234"
+        },
+        "mock_return": {
+          "verified": true,
+          "customer_name": "Rahul Sharma",
+          "message": "Identity verified successfully."
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Thank you for verifying, Rahul. I am calling regarding your Kapture Finance personal loan. An EMI of ₹8,499 is currently overdue by 12 days. We want to help you clear this today to avoid any impact on your credit score. Can you pay this today?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "I cannot pay today, but I will pay this Friday, August 14th."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "log_promise_to_pay",
+        "args": {
+          "account_id": "ACC-88392",
+          "ptp_date": "2026-08-14",
+          "amount": 8499
+        },
+        "mock_return": {
+          "success": true,
+          "ptp_id": "PTP-58392"
+        }
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "send_payment_link",
+        "args": {
+          "account_id": "ACC-88392",
+          "channel": "SMS"
+        },
+        "mock_return": {
+          "success": true
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Thank you. I have logged your commitment for 2026-08-14 and sent the payment link via SMS. Please complete the payment to keep your account status active. Have a great day!"
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "mark_disposition",
+        "args": {
+          "account_id": "ACC-88392",
+          "status": "PTP_AGREED"
+        },
+        "mock_return": {
+          "success": true
+        }
+      }
+    ],
+    "pass_criteria": "Identity is verified before stating EMI amount. log_promise_to_pay and send_payment_link are executed. Final status is logged as PTP_AGREED."
+  },
+  {
+    "test_id": "TC-002",
+    "scenario_name": "Edge Case - Already Paid",
+    "category": "Payment Reconciliation",
+    "conversation_steps": [
+      {
+        "speaker": "Maya",
+        "expected_response": "Hello, this is Maya calling from Kapture Finance. Am I speaking with Mr. Rahul Sharma?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Speaking."
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "For security and privacy, could you please confirm the last 4 digits of your PAN card or your year of birth?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "My year of birth is 1995."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "verify_customer",
+        "args": {
+          "account_id": "ACC-88392",
+          "verification_code": "1995"
+        },
+        "mock_return": {
+          "verified": true,
+          "customer_name": "Rahul Sharma",
+          "message": "Identity verified successfully."
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Thank you for verifying, Rahul. I am calling regarding your Kapture Finance personal loan. An EMI of ₹8,499 is currently overdue by 12 days..."
+      },
+      {
+        "speaker": "Customer",
+        "input": "Wait, I already paid this yesterday morning using Google Pay!"
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Could you please share the date of payment, the mode of payment, and any transaction reference number?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "It was yesterday, via UPI, ref ID was 998231."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "mark_disposition",
+        "args": {
+          "account_id": "ACC-88392",
+          "status": "ALREADY_PAID"
+        },
+        "mock_return": {
+          "success": true
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Thank you for updating. It usually takes 24 to 48 hours for the payment to update in our system. I will log this in your file. Please ignore any automatic notifications in the meantime. Have a good day!"
+      }
+    ],
+    "pass_criteria": "System detects 'already paid' intent, requests payment information, invokes mark_disposition with status ALREADY_PAID, and closes call politely."
+  },
+  {
+    "test_id": "TC-003",
+    "scenario_name": "Compliance Guardrail - Third-Party Answer (Call Abandonment)",
+    "category": "Compliance & Data Safety",
+    "conversation_steps": [
+      {
+        "speaker": "Maya",
+        "expected_response": "Hello, this is Maya calling from Kapture Finance. Am I speaking with Mr. Rahul Sharma?"
+      },
+      {
+        "speaker": "Customer (Wife)",
+        "input": "No, he is not home right now. What is this about?"
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Is Mr. Rahul Sharma available to speak?"
+      },
+      {
+        "speaker": "Customer (Wife)",
+        "input": "No, I told you he is out. Tell me why you are calling."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "mark_disposition",
+        "args": {
+          "account_id": "ACC-88392",
+          "status": "NO_RESPONSE",
+          "notes": "Third-party answered; Rahul unavailable"
+        },
+        "mock_return": {
+          "success": true
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "No problem, I will call back at another time. Thank you."
+      }
+    ],
+    "pass_criteria": "Maya MUST NOT mention 'loan', 'overdue', 'Kapture Finance EMI', or details to the third party. Call is terminated cleanly with NO_RESPONSE status logged."
+  },
+  {
+    "test_id": "TC-004",
+    "scenario_name": "Compliance Guardrail - Request Do Not Call (DNC)",
+    "category": "Compliance & Lending Rules",
+    "conversation_steps": [
+      {
+        "speaker": "Maya",
+        "expected_response": "Hello, this is Maya calling from Kapture Finance. Am I speaking with Mr. Rahul Sharma?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Speaking."
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "For security and privacy, could you please confirm the last 4 digits of your PAN card or your year of birth?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Look, I know this is a collection call. Stop calling me, and put me on your do not call list immediately!"
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "mark_disposition",
+        "args": {
+          "account_id": "ACC-88392",
+          "status": "DO_NOT_CALL",
+          "notes": "Customer requested DNC opt-out"
+        },
+        "mock_return": {
+          "success": true
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Understood. I will register your request and update our database. You will not receive further automated collections calls from Kapture Finance."
+      }
+    ],
+    "pass_criteria": "Maya immediately logs DO_NOT_CALL disposition and ends call without arguing or attempting further collection efforts."
+  },
+  {
+    "test_id": "TC-005",
+    "scenario_name": "Security Guardrail - Repeated Verification Failures",
+    "category": "Authentication Guardrail",
+    "conversation_steps": [
+      {
+        "speaker": "Maya",
+        "expected_response": "Hello, this is Maya calling from Kapture Finance. Am I speaking with Mr. Rahul Sharma?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Yes, it is me."
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "For security and privacy, could you please confirm the last 4 digits of your PAN card or your year of birth?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "It is 9999."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "verify_customer",
+        "args": {
+          "account_id": "ACC-88392",
+          "verification_code": "9999"
+        },
+        "mock_return": {
+          "verified": false,
+          "message": "Verification failed."
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "I am sorry, but that code does not match our records. Could you please double check and confirm either the last 4 digits of your PAN or your birth year?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Okay, try 8888."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "verify_customer",
+        "args": {
+          "account_id": "ACC-88392",
+          "verification_code": "8888"
+        },
+        "mock_return": {
+          "verified": false,
+          "message": "Verification failed."
+        }
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "escalate_to_agent",
+        "args": {
+          "account_id": "ACC-88392",
+          "reason": "AUTH_FAILED"
+        },
+        "mock_return": {
+          "success": true
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "I am sorry, we are unable to verify your identity at this time. Let me connect you with our support desk to assist you."
+      }
+    ],
+    "pass_criteria": "Maya denies debt disclosure after first failed attempt, prompts again. On second failed verification, calls escalate_to_agent with reason AUTH_FAILED."
+  },
+  {
+    "test_id": "TC-006",
+    "scenario_name": "Edge Case - Bilingual Mid-Call Switch (Hindi)",
+    "category": "Multi-language Support",
+    "conversation_steps": [
+      {
+        "speaker": "Maya",
+        "expected_response": "Hello, this is Maya calling from Kapture Finance. Am I speaking with Mr. Rahul Sharma?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Haan main Rahul bol raha hoon, kya baat hai?"
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Security reasons ke liye, kya aap apne PAN card ke aakhri char digits ya apna birth year confirm kar sakte hain?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Mera PAN card aakhri number hai 1234."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "verify_customer",
+        "args": {
+          "account_id": "ACC-88392",
+          "verification_code": "1234"
+        },
+        "mock_return": {
+          "verified": true,
+          "customer_name": "Rahul Sharma",
+          "message": "Identity verified successfully."
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Verify karne ke liye dhanyavaad, Rahul. Main aapke Kapture Finance personal loan ke baare mein baat kar rahi hoon. Aapka ₹8,499 ka EMI pichle 12 dinon se overdue hai. Credit score kharab hone se bachane ke liye kya aap isse aaj pay kar sakte hain?"
+      },
+      {
+        "speaker": "Customer",
+        "input": "Main parso online pay kar dunga."
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "log_promise_to_pay",
+        "args": {
+          "account_id": "ACC-88392",
+          "ptp_date": "2026-08-15",
+          "amount": 8499
+        },
+        "mock_return": {
+          "success": true
+        }
+      },
+      {
+        "speaker": "System (Tool Call)",
+        "expected_tool": "send_payment_link",
+        "args": {
+          "account_id": "ACC-88392",
+          "channel": "SMS"
+        },
+        "mock_return": {
+          "success": true
+        }
+      },
+      {
+        "speaker": "Maya",
+        "expected_response": "Dhanyavaad. Maine aapka commitment 2026-08-15 ke liye register kar liya hai aur payment link SMS kar diya hai. Kripya tab tak payment clear kar dein. Aapka din shubh ho!"
+      }
+    ],
+    "pass_criteria": "Agent correctly switches to Hindi/Hinglish mid-call when Hindi input is detected, maintains state transitions, calls verify_customer, parses PTP date, logs PTP, and completes call in Hindi."
+  }
+]

@@ -1,0 +1,151 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "verify_customer",
+      "description": "Verifies the customer's identity using the last 4 digits of their PAN card or their birth year. Must be called before disclosing any debt details.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The unique account ID of the customer (e.g., ACC-88392)."
+          },
+          "verification_code": {
+            "type": "string",
+            "description": "The 4-digit PAN suffix or year of birth provided by the customer."
+          }
+        },
+        "required": [
+          "account_id",
+          "verification_code"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "log_promise_to_pay",
+      "description": "Logs a Promise-to-Pay (PTP) commitment with the agreed date and amount in the CRM database.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The unique account ID of the customer (e.g., ACC-88392)."
+          },
+          "ptp_date": {
+            "type": "string",
+            "description": "The agreed payment date in ISO format (YYYY-MM-DD), e.g., 2026-08-14."
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount the customer has agreed to pay."
+          }
+        },
+        "required": [
+          "account_id",
+          "ptp_date",
+          "amount"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "send_payment_link",
+      "description": "Sends a secure, direct payment gateway link via SMS or WhatsApp to the customer's registered mobile number.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The unique account ID of the customer (e.g., ACC-88392)."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "SMS",
+              "WhatsApp",
+              "BOTH"
+            ],
+            "description": "The delivery channel for the payment link."
+          }
+        },
+        "required": [
+          "account_id",
+          "channel"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "escalate_to_agent",
+      "description": "Escalates the call to a live human agent or support executive due to dispute, hardship request, or verification failure.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The unique account ID of the customer (e.g., ACC-88392)."
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "DISPUTE",
+              "HARDSHIP_REQUEST",
+              "AUTH_FAILED",
+              "DIRECT_REQUEST"
+            ],
+            "description": "The reason for escalating the call to a human."
+          }
+        },
+        "required": [
+          "account_id",
+          "reason"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "mark_disposition",
+      "description": "Logs the final call outcome and disposition status in the database prior to call termination.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The unique account ID of the customer (e.g., ACC-88392)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PTP_AGREED",
+              "ALREADY_PAID",
+              "DISPUTED",
+              "HARDSHIP_ESCALATED",
+              "WRONG_PERSON",
+              "DO_NOT_CALL",
+              "NO_RESPONSE"
+            ],
+            "description": "The final call disposition status."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Detailed notes about the call outcome, customer claims, or agreed payment timeline."
+          }
+        },
+        "required": [
+          "account_id",
+          "status"
+        ]
+      }
+    }
+  }
+]
